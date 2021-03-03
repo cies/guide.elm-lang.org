@@ -1,62 +1,108 @@
-# An Introduction to Elm
+# Elm: Elegant browser programs
 
-**Elm is a functional language that compiles to JavaScript.** It helps you make websites and web apps. It has a strong emphasis on simplicity and quality tooling.
+**Elm is a programming language that compiles to JavaScript (the main language understood by web browsers).**
 
-This guide will:
+Contrary to some other programming languages (like C, C++, Java or Rust), Elm is not "general purpose", it is designed specifically to create web applications.
 
-  - Teach you the fundamentals of programming in Elm.
-  - Show you how to make interactive apps with **The Elm Architecture**.
-  - Emphasize principles and patterns that generalize to programming in any language.
+What makes Elm unique:
 
-By the end I hope you will not only be able to create great web apps in Elm, but also understand the core ideas and patterns that make Elm nice to use.
+  - Easy to get started, as it...
+    - ...is a "small" language (not much to learn),
+    - ...has a complete and well integrated set of tools, and
+    - ...gives beginner friendly errors!
+  - Elm makes writing correct programs easy (by virtue of something called *strong type safety*).
+  - All Elm applications follow *The Elm Architecture* which makes reading other's apps easy.
+  
 
-If you are on the fence, I can safely guarantee that if you give Elm a shot and actually make a project in it, you will end up writing better JavaScript code. The ideas transfer pretty easily!
+## The deep dive
 
+Before we go into the details of the Elm programming language, lets first have a look at the code for simple Elm application. This little app that lets you increment and decrement a number:
 
-## A Quick Sample
+```elm
+module Main exposing (main)
 
-Here is a little program that lets you increment and decrement a number:
+import Browser
+import Html exposing (Html, button, div, text)
+import Html.Events as E
+
+type alias Model = { count : Int }
+
+type Msg = Increment | Decrement
+
+update : Msg -> Model -> Model
+update msg model = case msg of
+    Increment -> { model | count = model.count + 1 }
+    Decrement -> { model | count = model.count - 1 }
+
+view : Model -> Html Msg
+view model =
+    div []
+        [ button [ E.onClick Increment ] [ text "+1" ]
+        , div [] [ text <| String.fromInt model.count ]
+        , button [ E.onClick Decrement ] [ text "-1" ]
+        ]
+
+main : Program () Model Msg
+main = Browser.sandbox { init = { count = 0 }, view = view, update = update }
+```
+
+Next we look a bit deeper into each section of this code.
+
+It start with a *module definition*, giving it a name (`Main`) and exposing only one function (`main`):
+
+```elm
+module Main exposing (main)
+```
+
+Then you find the `import` statements, this makes functionality of other Elm modules ([`Browser`](https://package.elm-lang.org/packages/elm/browser/latest/Browser), [`Html`](https://package.elm-lang.org/packages/elm/html/latest/Html) and [`Html.Events`](https://package.elm-lang.org/packages/elm/html/latest/Html-Events)) available to the code in this module:
 
 ```elm
 import Browser
 import Html exposing (Html, button, div, text)
 import Html.Events exposing (onClick)
-
-main =
-  Browser.sandbox { init = 0, update = update, view = view }
-
-type Msg = Increment | Decrement
-
-update msg model =
-  case msg of
-    Increment ->
-      model + 1
-
-    Decrement ->
-      model - 1
-
-view model =
-  div []
-    [ button [ onClick Decrement ] [ text "-" ]
-    , div [] [ text (String.fromInt model) ]
-    , button [ onClick Increment ] [ text "+" ]
-    ]
 ```
 
-Try it out in the online editor [here](https://elm-lang.org/examples/buttons).
+To find the documentation of these modules you can follow the links in the text above, use a search engine, or install a [code editor that understands Elm] (these usually show documentation by mouse clicking the code).
 
-The code can definitely look unfamiliar at first, so we will get into how this example works soon!
+The following two lines define data types, the `Model` which "keeps the count" and the `Msg` which specifies all possible "actions" this app support:
 
+```elm
+type alias Model = { count : Int }
 
-## Why a functional *language*?
+type Msg = Increment | Decrement
+```
 
-You can get some benefits from programming in a functional *style*, but there are some things you can only get from a functional *language* like Elm:
+This block of code defines the `update` function, which transforms a value of type `Msg` and a value of type `Model` into a value of type `Model` (it updates a `Model` with a `Msg`):
 
-  - No runtime errors in practice.
-  - Friendly error messages.
-  - Reliable refactoring.
-  - Automatically enforced semantic versioning for all Elm packages.
+```elm
+update : Msg -> Model -> Model
+update msg model = case msg of
+    Increment -> { model | count = model.count + 1 }
+    Decrement -> { model | count = model.count - 1 }
+```
 
-No combination of JS libraries can give you all of these guarantees. They come from the design of the language itself! And thanks to these guarantees, it is quite common for Elm programmers to say they never felt so **confident** while programming. Confident to add features quickly. Confident to refactor thousands of lines. But without the background anxiety that you missed something important!
+Further on in this guide we will fully explain how to read code like this.
 
-I have put a huge emphasis on making Elm easy to learn and use, so all I ask is that you give Elm a shot and see what you think. I hope you will be pleasantly surprised!
+[HTML] and [CSS] are most commonly used to create interfaces for web browsers. The interface of this simple app only uses HTML. It helps to be familiar with HTML and CSS when starting with Elm, but you can also pick it up along the way. The next block of code defines how to render a `Model` in a web browser, for which it uses functions from the `Html` module we included earlier. Some of these functions, i.e. `div` and `button` correspond to HTML tags.
+
+The `view` function transforms a value of type `Model` into a value of type `Html Msg` (it creates an HTML representation of a model):
+
+```elm
+view : Model -> Html Msg
+view model =
+    div []
+        [ button [ onClick Increment ] [ text "+1" ]
+        , div [] [ text (String.fromInt model.count) ]
+        , button [ onClick Decrement ] [ text "-1" ]
+        ]
+```
+
+The last two lines describe the main function which combines the `view` and `update` functions into a `Program`, a runnable Elm application.
+
+```elm
+main : Program () Model Msg
+main = Browser.sandbox { init = { count = 0 }, view = view, update = update }
+```
+
+You may [try out this app in Ellie](https://ellie-app.com/new).
+
